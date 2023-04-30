@@ -1,20 +1,20 @@
 class UI
   def self.clear_status
-    STDOUT.write " " * 78 + "\r"
+    puts " " * 78 + "\r"
   end
 
   def self.report_status(icon, text)
     clear_status
-    STDOUT.write "#{icon} #{text}...\r"
+    puts "#{icon} #{text}...\r"
   end
 
   def self.report_understood_speech(text)
     clear_status
 
     if text.empty?
-      STDOUT.write "👂 ⚠️ nieczyt?!!@//one\n"
+      puts "👂 ⚠️ nieczyt?!!@//one\n"
     else
-      STDOUT.write "👂 #{text.colorize(:blue)}\n"
+      puts "👂 #{text.colorize(:blue)}\n"
     end
   end
 
@@ -22,9 +22,9 @@ class UI
     clear_status
 
     if text.empty?
-      STDOUT.write "🤖 [no response]\r"
+      puts "🤖 [no response]\r"
     else
-      STDOUT.write "🤖 #{text.colorize(:green)}\n"
+      puts "🤖 #{text.colorize(:green)}\n"
     end
   end
 end

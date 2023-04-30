@@ -4,6 +4,8 @@ require "./lib/helpers/prompt-generator"
 
 class ChatOrchestrator
   def initialize(audio_input:, speech_to_text:, chat_engine:, text_to_speech:, audio_output:)
+    @drive_path = "/Users/dep/Google Drive/Pipedream/inputs/workflow-triggers"
+
     @audio_input = audio_input
     @speech_to_text = speech_to_text
     @chat_engine = chat_engine
@@ -17,6 +19,21 @@ class ChatOrchestrator
     raise "No speech to text" unless @speech_to_text
     raise "No chat engine" unless @chat_engine
     raise "No text to speech" unless @text_to_speech
+  end
+
+  def make_and_kill_trigger_file(trigger_file, speech_text)
+    file = "#{@drive_path}/#{trigger_file}/#{trigger_file}.txt"
+
+    # Add contents of speech_text into a file
+    File.open(file, "w") do |file|
+      file.puts(speech_text)
+    end
+
+    # After 60 seconds, remove the file using a separate thread
+    Thread.new do
+      sleep(60)
+      File.delete(file)
+    end
   end
 
   def start!
@@ -43,27 +60,38 @@ class ChatOrchestrator
         UI.report_status("🧠", "generating response text")
 
         # build list of possible 'one moment' strings
-        if speech_text.downcase.include?("emily")
-          one_moment_strings = [
-            "Hmm, give me a minute to look that up. I'll be right back with an answer",
-            "Just a moment. I'll check into that now. Thanks for your patience.",
-            "Hold on... Let me look that up. I'll be right back...",
-            "Wait a second Danny. I have to look that up... Rome wasn't built in a day.",
-            "Wait a moment Danny... I have to process this. Perfection takes time.",
-          ]
-          # pick a random one
-          one_moment_string = one_moment_strings.sample
-          say(one_moment_string)
+        one_moment_strings = [
+          "Hmm, give me a minute to look that up. I'll be right back with an answer",
+          "Just a moment. I'll check into that now. Thanks for your patience.",
+          "Hold on... Let me look that up. I'll be right back...",
+          "Wait a second Danny. I have to look that up... Rome wasn't built in a day.",
+          "Wait a moment Danny... I have to process this. Perfection takes time.",
+        ]
+        one_moment_string = one_moment_strings.sample
 
+        if speech_text.downcase.include?("weather") || speech_text.downcase.include?("forecast")
+          say(one_moment_string)
+          make_and_kill_trigger_file("weather", speech_text)
+        elsif speech_text.downcase.include?("stocks") || speech_text.downcase.include?("stock market")
+          say(one_moment_string)
+          make_and_kill_trigger_file("stocks", speech_text)
+        elsif speech_text.downcase.include?("todoist") || speech_text.downcase.include?("task list") || speech_text.downcase.include?("to-do") || speech_text.downcase.include?("todo")
+          say(one_moment_string)
+          make_and_kill_trigger_file("todoist", speech_text)
+        end
+
+        if speech_text.length > 10 && speech_text.downcase.include?("emily")
+          say(one_moment_string)
           response_text = @chat_engine.ask(@prompt_generator.generate)
         else
           response_text = ""
         end
 
-        if response_text.empty?
-          # if we couldn't generate a response, let's try again
-          # ask_to_repeat("What do you mean?")
-        else
+        if !response_text
+          response_text = ""
+        end
+
+        if response_text.length > 0
           # we've generated something, let's just say it
           say(response_text)
 

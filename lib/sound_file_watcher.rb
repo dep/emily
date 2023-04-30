@@ -6,8 +6,16 @@ class SoundFileWatcher
   end
 
   def start
-    listener = Listen.to(@folder_path) do |modified, added, removed|
+    # first remove all files in the firectory
+    Dir.foreach(@folder_path) do |file|
+      next if file == "." || file == ".."
+
+      File.delete("#{@folder_path}/#{file}")
+    end
+
+    listener = Listen.to(@folder_path, force_polling: true) do |modified, added, removed|
       added.each do |file|
+        puts "Playing #{file}"
         system("mpg123 -q '#{file}'")
         File.delete(file)
       end

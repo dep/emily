@@ -45,7 +45,7 @@ class MarkdownFileWatcher
   end
 
   def start
-    listener = Listen.to(@folder_path) do |_, added, _|
+    listener = Listen.to(@folder_path, force_polling: true) do |_, added, _|
       added.each do |file|
         next unless File.extname(file) == ".md"
 
@@ -59,7 +59,7 @@ class MarkdownFileWatcher
   end
 end
 
-folder_path = ARGV[0] || "/Users/dep/Google Drive/Obsidian/Brain 2.0/GPT Summaries/"
+folder_path = ARGV[0] || "/Users/dep/Google Drive/Pipedream/inputs/obsidian-gpt-summaries/"
 puts "Watching folder: #{folder_path}"
 watcher = MarkdownFileWatcher.new(folder_path)
 watcher.start
