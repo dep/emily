@@ -30,9 +30,6 @@ class OpenAIChat
       },
     )
 
-    debug("<<<<< Response from OpenAI chat:")
-    debug(response.parsed_response)
-
     response.dig("choices", 0, "message", "content")
   end
 
