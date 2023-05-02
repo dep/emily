@@ -4,6 +4,9 @@ require "./lib/helpers/prompt-generator"
 
 class ChatOrchestrator
   def initialize(audio_input:, speech_to_text:, chat_engine:, text_to_speech:, audio_output:)
+    @my_name = "danny"
+    @your_name = "emily"
+
     @drive_path = "/Users/dep/Google Drive/Pipedream/inputs/workflow-triggers"
 
     @audio_input = audio_input
@@ -64,8 +67,8 @@ class ChatOrchestrator
           "Hmm, give me a minute to look that up. I'll be right back with an answer",
           "Just a moment. I'll check into that now. Thanks for your patience.",
           "Hold on... Let me look that up. I'll be right back...",
-          "Wait a second Danny. I have to look that up... Rome wasn't built in a day.",
-          "Wait a moment Danny... I have to process this. Perfection takes time.",
+          "Wait a second #{@my_name}. I have to look that up... Rome wasn't built in a day.",
+          "Wait a moment #{@my_name}... I have to process this. Perfection takes time.",
         ]
         one_moment_string = one_moment_strings.sample
 
@@ -80,7 +83,7 @@ class ChatOrchestrator
           make_and_kill_trigger_file("todoist", speech_text)
         end
 
-        if speech_text.length > 10 && speech_text.downcase.include?("emily")
+        if speech_text.length > 10 && speech_text.downcase.include?(@your_name)
           say(one_moment_string)
           response_text = @chat_engine.ask(@prompt_generator.generate)
         else
