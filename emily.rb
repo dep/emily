@@ -61,7 +61,7 @@ chat = ChatOrchestrator.new(
   speech_to_text: OpenAIWhisper.new,
 
   # takes some additional optional parameters:
-  chat_engine: OpenAIChat.new(temperature: 0.7, max_tokens: 256, model: "gpt-3.5-turbo"),
+  chat_engine: OpenAIChat.new(temperature: 0.7, max_tokens: 250, model: "gpt-3.5-turbo"),
   # chat_engine: OpenAIChat.new,
 
   text_to_speech: ElevenLabs.new,

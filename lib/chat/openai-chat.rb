@@ -10,7 +10,7 @@ OpenAI.configure do |config|
 end
 
 class OpenAIChat
-  def initialize(model: "gpt-3.5-turbo", temperature: 0.8, max_tokens: 500, debug: false)
+  def initialize(model: "gpt-3.5-turbo", temperature: 0.8, max_tokens: 250, debug: false)
     @client = OpenAI::Client.new
     @model = model
     @temperature = temperature
@@ -31,7 +31,7 @@ class OpenAIChat
     )
 
     debug("<<<<< Response from OpenAI chat:")
-    debug(JSON.pretty_generate(response.parsed_response))
+    debug(response.parsed_response)
 
     response.dig("choices", 0, "message", "content")
   end

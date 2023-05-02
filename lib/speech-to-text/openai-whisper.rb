@@ -1,10 +1,10 @@
-require 'openai'
-require 'awesome_print'
+require "openai"
+require "awesome_print"
 
-require 'tempfile'
+require "tempfile"
 
 class OpenAIWhisper
-  def initialize(access_token = ENV['OPENAI_API_KEY'])
+  def initialize(access_token = ENV["OPENAI_API_KEY"])
     @access_token = access_token
 
     raise "whisper openai access token is missing" if @access_token.nil?
@@ -13,15 +13,16 @@ class OpenAIWhisper
   def process(audio)
     openai = OpenAI::Client.new
 
-    tmpfile = Tempfile.create(['openai-whisper', '.mp3'])
+    tmpfile = Tempfile.create(["openai-whisper", ".mp3"])
     File.write(tmpfile.path, audio)
 
     response = openai.transcribe(
       parameters: {
-          model: "whisper-1",
-          file: File.open(tmpfile.path),
-      })
+        model: "whisper-1",
+        file: File.open(tmpfile.path),
+      },
+    )
 
-    response.parsed_response['text']
+    response["text"]
   end
 end

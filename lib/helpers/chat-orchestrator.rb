@@ -70,13 +70,13 @@ class ChatOrchestrator
         one_moment_string = one_moment_strings.sample
 
         if speech_text.downcase.include?("weather") || speech_text.downcase.include?("forecast")
-          say(one_moment_string)
+          say("I'll be right back with the weather.")
           make_and_kill_trigger_file("weather", speech_text)
         elsif speech_text.downcase.include?("stocks") || speech_text.downcase.include?("stock market")
-          say(one_moment_string)
+          say("Let me check the stock market and get back to you.")
           make_and_kill_trigger_file("stocks", speech_text)
         elsif speech_text.downcase.include?("todoist") || speech_text.downcase.include?("task list") || speech_text.downcase.include?("to-do") || speech_text.downcase.include?("todo")
-          say(one_moment_string)
+          say("Lets get that task added to todoist for you. Give me a minute.")
           make_and_kill_trigger_file("todoist", speech_text)
         end
 
