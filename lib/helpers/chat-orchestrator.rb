@@ -1,3 +1,6 @@
+require "json"
+require "net/http"
+
 require "./lib/helpers/conversation"
 require "./lib/helpers/interface"
 require "./lib/helpers/prompt-generator"
@@ -24,18 +27,16 @@ class ChatOrchestrator
     raise "No text to speech" unless @text_to_speech
   end
 
-  def make_and_kill_trigger_file(trigger_file, speech_text)
-    file = "#{@drive_path}/#{trigger_file}/#{trigger_file}.txt"
+  def fire_event(url)
+    uri = URI(url)
+    req = Net::HTTP::Post.new(uri, "Content-Type" => "application/json")
 
-    # Add contents of speech_text into a file
-    File.open(file, "w") do |file|
-      file.puts(speech_text)
-    end
+    req.body = {
+      "from_emily": true,
+    }.to_json
 
-    # After 60 seconds, remove the file using a separate thread
-    Thread.new do
-      sleep(60)
-      File.delete(file)
+    Net::HTTP.start(uri.hostname, uri.port, :use_ssl => uri.scheme == "https") do |http|
+      http.request(req)
     end
   end
 
@@ -59,29 +60,7 @@ class ChatOrchestrator
         # let's remember what the user said for future context
         @conversation.remember_my_statement(speech_text)
 
-        # let's generate a response from chat engine
-        UI.report_status("🧠", "generating response text")
-
-        # build list of possible 'one moment' strings
-        one_moment_strings = [
-          "Hmm, give me a minute to look that up. I'll be right back with an answer",
-          "Just a moment. I'll check into that now. Thanks for your patience.",
-          "Hold on... Let me look that up. I'll be right back...",
-          "Wait a second #{@my_name}. I have to look that up... Rome wasn't built in a day.",
-          "Wait a moment #{@my_name}... I have to process this. Perfection takes time.",
-        ]
-        one_moment_string = one_moment_strings.sample
-
-        if speech_text.downcase.include?("weather") || speech_text.downcase.include?("forecast")
-          say("I'll be right back with the weather.")
-          make_and_kill_trigger_file("weather", speech_text)
-        elsif speech_text.downcase.include?("stocks") || speech_text.downcase.include?("stock market")
-          say("Let me check the stock market and get back to you.")
-          make_and_kill_trigger_file("stocks", speech_text)
-        elsif speech_text.downcase.include?("todoist") || speech_text.downcase.include?("task list") || speech_text.downcase.include?("to-do") || speech_text.downcase.include?("todo")
-          say("Lets get that task added to todoist for you. Give me a minute.")
-          make_and_kill_trigger_file("todoist", speech_text)
-        end
+        process_common_requests(speech_text)
 
         if speech_text.length > 10 && speech_text.downcase.include?(@your_name)
           say(one_moment_string)
@@ -105,6 +84,62 @@ class ChatOrchestrator
 
       UI.report_status("🎙️", "listening")
     end
+  end
+
+  def prompt_for_text_input
+    loop do
+      print "Please enter your text input (type 'exit' to quit): "
+      user_input = gets.chomp
+
+      break if user_input.downcase == "exit"
+
+      process_text_input(user_input)
+    end
+  end
+
+  def process_text_input(input_text)
+    # let's remember what the user said for future context
+    @conversation.remember_my_statement(input_text)
+
+    process_common_requests(input_text)
+
+    response_text = @chat_engine.ask(@prompt_generator.generate)
+
+    if !response_text
+      response_text = ""
+    end
+
+    if response_text.length > 0
+      # we've generated something, let's just say it
+      say(response_text)
+
+      # and remember for future context as well
+      @conversation.remember_generated_statement(response_text)
+    end
+  end
+
+  def process_common_requests(input_text)
+    if input_text.downcase.include?("weather") || input_text.downcase.include?("forecast")
+      say("I'll be right back with the weather.")
+      fire_event("https://eose1ey7rdg1rpm.m.pipedream.net")
+    elsif input_text.downcase.include?("stocks") || input_text.downcase.include?("stock market")
+      say("Let me check the stock market and get back to you.")
+      fire_event("https://eons1sdz6qhiy1x.m.pipedream.net")
+    elsif input_text.downcase.include?("todoist") || input_text.downcase.include?("task list") || input_text.downcase.include?("to-do") || input_text.downcase.include?("todo")
+      say("Lets get that task added to todoist for you. Give me a minute.")
+      # make_and_kill_trigger_file("todoist", input_text)
+    end
+  end
+
+  def one_moment_string
+    one_moment_strings = [
+      "Hmm, give me a minute to look that up. I'll be right back with an answer",
+      "Just a moment. I'll check into that now. Thanks for your patience.",
+      "Hold on... Let me look that up. I'll be right back...",
+      "Wait a second #{@my_name}. I have to look that up... Rome wasn't built in a day.",
+      "Wait a moment #{@my_name}... I have to process this. Perfection takes time.",
+    ]
+    one_moment_strings.sample
   end
 
   # if report_generated_text is set to false, then we won't remember we said that

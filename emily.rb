@@ -69,4 +69,6 @@ chat = ChatOrchestrator.new(
   # audio_output: AudioOutputFiles.new("/tmp/whisper11")
 )
 
+chat.prompt_for_text_input
+
 chat.start!
